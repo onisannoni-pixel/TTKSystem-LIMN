@@ -2,174 +2,261 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>TTKSystem LIMN公開版</title>
-<script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.1/dist/peerjs.min.js"></script>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TTKシステム 最強版</title>
+<script src="https://cdn.jsdelivr.net/npm/peerjs@1.4.7/dist/peerjs.min.js"></script>
 <style>
-body{font-family:sans-serif;margin:0;padding:0;background:#f9f9f9;}
-h1{text-align:center;padding:15px;background:#007bff;color:white;margin:0;}
-.container{max-width:900px;margin:10px auto;padding:10px;}
-.card{background:white;padding:15px;margin:10px 0;border-radius:10px;box-shadow:0 2px 6px rgba(0,0,0,0.1);}
-input,textarea,button,select{width:100%;padding:10px;margin:5px 0;border:1px solid #ccc;border-radius:6px;box-sizing:border-box;}
-button{cursor:pointer;font-weight:bold;}
-button.primary{background:#007bff;color:white;border:none;}
-button.success{background:#28a745;color:white;border:none;}
-button.danger{background:#dc3545;color:white;border:none;}
-button.warning{background:#ffc107;color:black;border:none;}
-#friendList li{padding:8px;border-bottom:1px solid #eee;display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;}
-.status-online{color:green;font-weight:bold;}
-.status-offline{color:gray;font-weight:normal;}
-.popup{position:fixed;bottom:-200px;left:50%;transform:translateX(-50%);background:#007bff;color:white;padding:15px;border-radius:10px;box-shadow:0 4px 8px rgba(0,0,0,0.3);transition:bottom 0.5s;width:90%;max-width:400px;z-index:1000;}
-.popup.show{bottom:20px;}
-.popup button{margin:5px 0;padding:12px;font-size:1.1em;}
-video{width:100%;max-height:250px;background:black;border-radius:10px;margin-top:5px;}
-.remote-video{margin:5px 0;}
-.file-list,.mail-list{margin-top:10px;}
-.file-item,.mail-item{border:1px solid #ccc;padding:8px;margin:5px 0;border-radius:6px;}
+body{font-family:sans-serif;padding:20px;max-width:900px;margin:auto;}
+h1{color:#007bff;}
+.box{border:1px solid #ccc;border-radius:8px;padding:15px;margin:20px 0;}
+input,textarea,select{width:100%;padding:8px;margin:5px 0;}
+button{padding:8px 15px;border:none;border-radius:6px;cursor:pointer;}
+button.add{background:#28a745;color:#fff;}
+button.call{background:#007bff;color:#fff;}
+button.send{background:#17a2b8;color:#fff;}
+ul{list-style:none;padding:0;}
+li{border-bottom:1px solid #eee;padding:8px;}
+audio,video{display:block;margin:5px 0;max-width:100%;}
 </style>
 </head>
 <body>
-<h1>📹 TTKSystem LIMN公開版</h1>
-<div class="container">
 
-<div class="card">
+<h1>📞 TTKシステム 最強版</h1>
+
+<div class="box">
 <h2>🔑 あなたの招待コード</h2>
-<div id="myCode" style="font-size:1.5em;font-weight:bold;padding:10px;background:#f0f0f0;border-radius:6px;text-align:center"></div>
+<div id="myCode" style="font-size:1.5em;font-weight:bold;padding:10px;background:#f0f0f0;border-radius:6px;text-align:center;"></div>
 </div>
 
-<div class="card">
-<h2>➕ 友達追加</h2>
-<input id="inviteCode" placeholder="友達の招待コード">
-<input id="inviteName" placeholder="ユーザー名">
-<input id="invitePhone" placeholder="電話番号">
-<input id="inviteEmail" placeholder="メール">
-<button class="success" onclick="addFriend()">👤 友達追加</button>
+<div class="box">
+<h2>➕ 友達を追加</h2>
+<input id="inviteCode" placeholder="友達の招待コード"/>
+<input id="inviteName" placeholder="ユーザー名"/>
+<button class="add" onclick="addFriend()">👤 友達追加</button>
 </div>
 
-<div class="card">
+<div class="box">
 <h2>👥 友達リスト</h2>
 <ul id="friendList"></ul>
 </div>
 
-<div class="card">
-<h2>通話</h2>
-<button class="success" onclick="startAudioCall()">🎤 音声のみ</button>
-<button class="primary" onclick="startCameraCall()">📷 カメラ</button>
-<button class="warning" onclick="startScreenShare()">🖥 画面共有</button>
-<button class="warning" onclick="toggleMute()">🔇 ミュート</button>
-<button class="danger" onclick="endAllCalls()">❌ 通話終了</button>
-<video id="localVideo" autoplay muted></video>
-<div id="remoteVideos"></div>
+<div class="box">
+<h2>💬 チャット</h2>
+<select id="chatSelect" onchange="loadChat()"><option value=''>友達を選択</option></select>
+<div id="chatArea" style="border:1px solid #ddd; padding:10px; height:200px; overflow-y:scroll; background:#fafafa;"></div>
+<input id="chatMessage" placeholder="メッセージを入力"/>
+<button class="send" onclick="sendMessage()">📮 送信</button>
 </div>
 
-<div class="card">
-<h2>📧 メール送信</h2>
-<input id="mailRecipient" placeholder="宛先メールアドレス">
-<input id="mailSubject" placeholder="件名">
-<textarea id="mailBody" placeholder="本文"></textarea>
-<button class="success" onclick="sendMail()">📮 送信</button>
-<div class="mail-list" id="sentMails"></div>
+<div class="box">
+<h2>📂 ファイル送信</h2>
+<input type="file" id="fileInput"/>
+<button class="send" onclick="sendFile()">📤 送信</button>
+<ul id="fileHistory"></ul>
 </div>
 
-<div class="card">
-<h2>📁 ファイル送信</h2>
-<input type="file" id="fileInput">
-<select id="fileFriendSelect"></select>
-<button class="success" onclick="sendFile()">送信</button>
-<div class="file-list" id="receivedFiles"></div>
+<div class="box">
+<h2>🎤 ビデオ通話（複数人対応）</h2>
+<select id="callSelect"><option value=''>友達を選択</option></select>
+<button onclick="startCallPeer()">通話に参加</button>
+<div id="videoArea"></div>
+<ul id="callParticipants"></ul>
 </div>
 
-<div class="card" style="border:2px solid #dc3545;background:#fff5f5;">
-<h2>🔒 管理者モード</h2>
-<input type="password" id="adminPassword" placeholder="管理者パスワード">
-<button class="primary" onclick="tryAdminAccess()">🚀 認証実行</button>
+<div class="box">
+<h2>🗝 管理者モード</h2>
+<input type="password" id="adminPassword" placeholder="管理者パスワード"/>
+<button onclick="tryAdmin()">🔒 管理者モード</button>
 <div id="adminPanel" style="display:none;">
-<h3>⚡ 管理者アクセス中</h3>
-<strong>友達情報:</strong>
-<ul id="adminFriends"></ul>
-<strong>通話履歴:</strong>
-<ul id="adminCalls"></ul>
-<strong>送信メール:</strong>
-<ul id="adminMails"></ul>
-<button class="danger" onclick="exitAdmin()">🔒 管理者終了</button>
+<h3>全友達履歴</h3>
+<div id="adminHistory"></div>
+<button onclick="exitAdmin()">🔓 管理者終了</button>
 </div>
 </div>
-
-</div>
-<div id="popup" class="popup"></div>
-<audio id="notifSound" src="https://www.soundjay.com/buttons/sounds/button-3.mp3"></audio>
 
 <script>
-// ======= LIMN公開版JS =======
-let myCode='', friends=[], callHistory=[], sentMails=[], callList={}, localStream=null, muted=false, videoEnabled=false, screenSharing=false;
-let adminAccess=false;
-let peer=null, connList={};
+// ===== 初期設定 =====
+let myCode=localStorage.getItem("TTKMyCode");
+if(!myCode){myCode=String(Math.floor(100000+Math.random()*900000));localStorage.setItem("TTKMyCode",myCode);}
+document.getElementById("myCode").innerText=myCode;
 
-// 初期化
-function init(){
-  myCode=localStorage.getItem('TTKMyCode')||String(Math.floor(100000+Math.random()*900000));
-  localStorage.setItem('TTKMyCode',myCode);
-  document.getElementById('myCode').innerText=myCode;
+let friends=JSON.parse(localStorage.getItem("TTKFriends")||"[]");
+renderFriends(); renderChatSelect(); renderCallSelect();
 
-  friends=JSON.parse(localStorage.getItem('TTKFriends')||'[]');
-  callHistory=JSON.parse(localStorage.getItem('TTKCallHistory')||'[]');
-  sentMails=JSON.parse(localStorage.getItem('TTKSentMails')||'[]');
-  renderFriends(); renderMails();
+let localStream=null;
+let peers={};
+const peer=new Peer(myCode);
 
-  peer=new Peer(myCode,{host:'0.peerjs.com',port:443,secure:true});
-  peer.on('call',c=>{playNotif(); if(confirm(`${c.peer}から着信`)){c.answer(localStream); c.on('stream',s=>addRemoteStream(c.peer,s)); callList[c.peer]=c;}});
-}
-init();
+navigator.mediaDevices.getUserMedia({audio:true,video:true}).then(stream=>{localStream=stream;});
 
+// ===== 友達管理 =====
 function addFriend(){
-  const name=document.getElementById('inviteName').value;
-  const code=document.getElementById('inviteCode').value;
-  const phone=document.getElementById('invitePhone').value;
-  const email=document.getElementById('inviteEmail').value;
-  if(!name||!code||!phone||!email){alert('全て入力');return;}
-  if(friends.some(f=>f.name===name)){alert('ユーザー名重複'); return;}
-  friends.push({id:'friend-'+Date.now(),name,code,phone,email,isOnline:true});
-  localStorage.setItem('TTKFriends',JSON.stringify(friends));
-  document.getElementById('inviteName').value='';document.getElementById('inviteCode').value='';document.getElementById('invitePhone').value='';document.getElementById('inviteEmail').value='';
-  renderFriends(); updateFileSelect();
-  alert(`${name}さんと友達になりました！`);
+  const code=document.getElementById("inviteCode").value.trim();
+  const name=document.getElementById("inviteName").value.trim();
+  if(!code||!name){alert("招待コードと名前を入力してください");return;}
+  if(friends.some(f=>f.name===name)){alert("そのユーザー名は既に使われています");return;}
+  friends.push({id:Date.now(),code,name});
+  localStorage.setItem("TTKFriends",JSON.stringify(friends));
+  renderFriends(); renderChatSelect(); renderCallSelect();
+  document.getElementById("inviteCode").value="";
+  document.getElementById("inviteName").value="";
+  alert(`${name} さんを追加しました`);
 }
 
 function renderFriends(){
-  const ul=document.getElementById('friendList'); ul.innerHTML='';
-  friends.forEach(f=>{const li=document.createElement('li'); li.innerHTML=`<strong>${f.name}</strong> | 📧 ${f.email} | 📞 ${f.phone} | コード: ${f.code}`; const btn=document.createElement('button'); btn.innerText='📞 通話'; btn.className='primary'; btn.onclick=()=>startCall(f); li.appendChild(btn); ul.appendChild(li);});
+  const list=document.getElementById("friendList");
+  list.innerHTML="";
+  if(friends.length===0){list.innerHTML="<li>まだ友達はいません</li>";return;}
+  friends.forEach(f=>{
+    const li=document.createElement("li");
+    li.innerHTML=`<strong>${f.name}</strong> (コード:${f.code}) <button class="call" onclick="startCallPeer('${f.code}')">📞 通話</button>`;
+    list.appendChild(li);
+  });
 }
 
-function updateFileSelect(){
-  const sel=document.getElementById('fileFriendSelect'); sel.innerHTML=''; friends.forEach(f=>{const opt=document.createElement('option'); opt.value=f.code; opt.text=`${f.name} (${f.code})`; sel.appendChild(opt);});
+function renderChatSelect(){
+  const select=document.getElementById("chatSelect");
+  select.innerHTML="<option value=''>友達を選択</option>";
+  friends.forEach(f=>{select.innerHTML+=`<option value='${f.code}'>${f.name}</option>`});
 }
 
-// 通話系
-async function initLocalStream(audioOnly=false){
-  if(!localStream){localStream=await navigator.mediaDevices.getUserMedia({audio:true,video:!audioOnly}); document.getElementById('localVideo').srcObject=localStream;}
+function renderCallSelect(){
+  const select=document.getElementById("callSelect");
+  select.innerHTML="<option value=''>友達を選択</option>";
+  friends.forEach(f=>{select.innerHTML+=`<option value='${f.code}'>${f.name}</option>`});
 }
-async function startCall(friend){await initLocalStream(!videoEnabled); const call=peer.call(friend.code,localStream); call.on('stream',s=>addRemoteStream(friend.code,s)); callList[friend.code]=call;}
-async function startAudioCall(){videoEnabled=false; screenSharing=false; await initLocalStream(true); friends.forEach(f=>startCall(f));}
-async function startCameraCall(){videoEnabled=true; screenSharing=false; await initLocalStream(false); friends.forEach(f=>startCall(f));}
-async function startScreenShare(){if(screenSharing){screenSharing=false; videoEnabled=false; localStream.getTracks().forEach(t=>t.stop()); localStream=null; startCameraCall(); return;} try{const stream=await navigator.mediaDevices.getDisplayMedia({video:true,audio:true});screenSharing=true;localStream=stream;document.getElementById('localVideo').srcObject=stream; Object.values(callList).forEach(c=>c.close()); callList={}; friends.forEach(f=>startCall(f));}catch(e){alert('画面共有失敗');}}
-function endAllCalls(){Object.values(callList).forEach(c=>c.close()); callList={}; document.getElementById('remoteVideos').innerHTML='';}
-function toggleMute(){if(localStream){muted=!muted; localStream.getAudioTracks()[0].enabled=!muted; alert(muted?'ミュートON':'ミュートOFF');}}
-function addRemoteStream(peerId,stream){let video=document.getElementById('remote-'+peerId);if(!video){video=document.createElement('video');video.id='remote-'+peerId;video.autoplay=true;video.className='remote-video';document.getElementById('remoteVideos').appendChild(video);} video.srcObject=stream;}
 
-// メール
-function sendMail(){const to=document.getElementById('mailRecipient').value;const subject=document.getElementById('mailSubject').value;const body=document.getElementById('mailBody').value;if(!to||!body){alert('宛先と本文を入力');return;} const m={to,subject,body,time:new Date()}; sentMails.push(m); localStorage.setItem('TTKSentMails',JSON.stringify(sentMails)); renderMails(); alert('メール送信完了'); document.getElementById('mailRecipient').value='';document.getElementById('mailSubject').value='';document.getElementById('mailBody').value='';}
-function renderMails(){const ul=document.getElementById('sentMails'); ul.innerHTML=''; sentMails.forEach(m=>{const li=document.createElement('div'); li.className='mail-item'; li.innerText=`${m.to} - ${m.subject||'(件名なし)'} - ${new Date(m.time).toLocaleString()}`; ul.appendChild(li);});}
+// ===== チャット =====
+function loadChat(){
+  const friendCode=document.getElementById("chatSelect").value;
+  const chatArea=document.getElementById("chatArea");
+  if(!friendCode){chatArea.innerHTML="";return;}
+  let history=JSON.parse(localStorage.getItem("TTKChat_"+friendCode)||"[]");
+  chatArea.innerHTML="";
+  history.forEach(c=>{chatArea.innerHTML+=`[${c.time}] ${c.text}<br>`;});
+}
 
-// ファイル送信
-function sendFile(){const fileInput=document.getElementById('fileInput');const friendCode=document.getElementById('fileFriendSelect').value;if(!fileInput.files[0]){alert('ファイル選択');return;} alert('ファイル送信は同一ブラウザ間でPeer接続必要');}
+function sendMessage(){
+  const friendCode=document.getElementById("chatSelect").value;
+  const msg=document.getElementById("chatMessage").value.trim();
+  if(!friendCode){alert("友達を選択してください");return;}
+  if(!msg)return;
+  const history=JSON.parse(localStorage.getItem("TTKChat_"+friendCode)||"[]");
+  const entry={text:msg,time:new Date().toLocaleString()};
+  history.push(entry);
+  localStorage.setItem("TTKChat_"+friendCode,JSON.stringify(history));
+  document.getElementById("chatMessage").value="";
+  loadChat();
+  notify("新しいメッセージ",msg);
+  if(peers[friendCode]){peers[friendCode].send(JSON.stringify({type:"chat",msg,from:myCode}))}
+}
 
-// 通知
-function playNotif(){document.getElementById('notifSound').play();}
+// ===== ファイル送信 =====
+function sendFile(){
+  const friendCode=document.getElementById("chatSelect").value;
+  const fileInput=document.getElementById("fileInput");
+  if(!friendCode){alert("友達を選択してください");return;}
+  if(!fileInput.files.length){alert("ファイルを選択してください");return;}
+  const file=fileInput.files[0];
+  const reader=new FileReader();
+  reader.onload=function(e){
+    const data=e.target.result;
+    if(peers[friendCode]){peers[friendCode].send(JSON.stringify({type:"file",name:file.name,data}))}
+  }
+  reader.readAsDataURL(file);
+  const history=JSON.parse(localStorage.getItem("TTKFile_"+friendCode)||"[]");
+  history.push({name:file.name,time:new Date().toLocaleString()});
+  localStorage.setItem("TTKFile_"+friendCode,JSON.stringify(history));
+  fileInput.value="";
+  renderFileHistory(friendCode);
+  notify("ファイル送信完了",file.name);
+}
 
-// 管理者
-function tryAdminAccess(){const pw=document.getElementById('adminPassword').value;if(pw==='1234樹'){adminAccess=true; document.getElementById('adminPanel').style.display='block'; renderAdmin(); alert('管理者アクセス');}else{alert('認証失敗');}}
-function exitAdmin(){adminAccess=false; document.getElementById('adminPanel').style.display='none';}
-function renderAdmin(){const f=document.getElementById('adminFriends'); f.innerHTML=''; friends.forEach(fr=>{const li=document.createElement('li'); li.innerText=`${fr.name} | 📧 ${fr.email} | 📞 ${fr.phone} | コード: ${fr.code}`; f.appendChild(li);}); const c=document.getElementById('adminCalls'); c.innerHTML=''; callHistory.forEach(ch=>{const li=document.createElement('li'); li.innerText=`${ch.friendName} - ${new Date(ch.time).toLocaleString()}`; c.appendChild(li);}); const m=document.getElementById('adminMails'); m.innerHTML=''; sentMails.forEach(sm=>{const li=document.createElement('li'); li.innerText=`${sm.to} - ${sm.subject||'(件名なし)'} - ${new Date(sm.time).toLocaleString()}`; m.appendChild(li);});}
-</script>
-</body>
-</html>
+function renderFileHistory(friendCode){
+  const list=document.getElementById("fileHistory");
+  list.innerHTML="";
+  const history=JSON.parse(localStorage.getItem("TTKFile_"+friendCode)||"[]");
+  history.forEach(f=>{
+    const li=document.createElement("li");
+    const link=document.createElement("a");
+    link.href=f.data||"#";
+    link.download=f.name;
+    link.innerText=`[${f.time}] ${f.name}`;
+    li.appendChild(link);
+    list.appendChild(li);
+  });
+}
+
+// ===== 通知 =====
+function notify(title,body){
+  if(Notification.permission==="granted"){new Notification(title,{body});}
+  else if(Notification.permission!=="denied"){Notification.requestPermission().then(p=>{if(p==="granted")new Notification(title,{body});});}
+}
+
+// ===== 管理者モード =====
+const ADMIN_PASS="1234樹";
+function tryAdmin(){
+  const pw=document.getElementById("adminPassword").value;
+  if(pw!==ADMIN_PASS){alert("認証失敗");return;}
+  document.getElementById("adminPanel").style.display="block";
+  renderAdmin();
+}
+function exitAdmin(){document.getElementById("adminPanel").style.display="none";}
+
+function renderAdmin(){
+  const div=document.getElementById("adminHistory");
+  div.innerHTML="";
+  friends.forEach(f=>{
+    div.innerHTML+=`<h4>${f.name} (コード:${f.code})</h4>`;
+    let chat=JSON.parse(localStorage.getItem("TTKChat_"+f.code)||"[]");
+    let files=JSON.parse(localStorage.getItem("TTKFile_"+f.code)||"[]");
+    let calls=JSON.parse(localStorage.getItem("TTKCall_"+f.code)||"[]");
+    div.innerHTML+="<b>チャット:</b><ul>"+chat.map(c=>`<li>[${c.time}] ${c.text}</li>`).join("")+"</ul>";
+    div.innerHTML+="<b>ファイル:</b><ul>"+files.map(f=>`<li>[${f.time}] ${f.name}</li>`).join("")+"</ul>";
+    div.innerHTML+="<b>通話:</b><ul>"+calls.map(c=>`<li>[${c.time}] ${c.name}</li>`).join("")+"</ul>";
+  });
+}
+
+// ===== WebRTC ビデオ通話 =====
+const videoArea=document.getElementById("videoArea");
+
+function startCallPeer(){
+  const friendCode=document.getElementById("callSelect").value;
+  if(!friendCode){alert("友達を選択してください");return;}
+  const call=peer.call(friendCode,localStream);
+  call.on('stream',stream=>{addVideo(stream,friendCode)});
+  peers[friendCode]=call;
+  saveCallHistory(friendCode);
+  updateParticipants();
+  notify("通話開始",`あなたが ${friendCode} と接続`);
+}
+
+peer.on('call', call=>{
+  call.answer(localStream);
+  call.on('stream',stream=>{addVideo(stream,call.peer)});
+  peers[call.peer]=call;
+  saveCallHistory(call.peer);
+  updateParticipants();
+});
+
+function addVideo(stream,name){
+  const video=document.createElement("video");
+  video.srcObject=stream;
+  video.autoplay=true;
+  video.controls=true;
+  video.dataset.name=name;
+  videoArea.appendChild(video);
+  updateParticipants();
+}
+
+function updateParticipants(){
+  const ul=document.getElementById("callParticipants");
+  ul.innerHTML="";
+  const vids=videoArea.querySelectorAll("video");
+  vids.forEach(v=>{const li=document.createElement("li");li.innerText=v.dataset.name;ul.appendChild(li);});
+}
+
+// ===== 通話履歴自動保存 =====
+function saveCallHistory(friendCode){
+  const history=JSON.parse(localStorage.getItem("TTKCall_"+friendCode)||"[]");
+  history.push({time:new Date().toLocaleString(),name:friendCode});
+  localStorage.setItem("TTKCall_"+friendCode,
